@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Физик Лаборатори: Гүйдэлтэй Ороомгийн Соронзон Орон</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-space: #070b19;
+            --bg-card: #0d152d;
+            --bg-glass: rgba(13, 21, 45, 0.7);
+            --steel-light: #e2e8f0;
+            --steel-dark: #64748b;
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-coral: #fb7185;
+            --accent-yellow: #f59e0b;
+            --text-muted: #94a3b8;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-space);
+            color: var(--steel-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+            background-size: 25px 25px;
+        }
+
+        /* 1. ЭХЛЭХ НҮҮР ХУУДАС */
+        .welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #0f1c3f 0%, var(--bg-space) 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 999; transition: all 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+            padding: 20px; text-align: center;
+        }
+
+        .welcome-screen.hidden {
+            opacity: 0; visibility: hidden; transform: translateY(-100%);
+        }
+
+        .physics-decor {
+            position: relative; width: 100px; height: 100px; margin-bottom: 30px;
+            border: 2px dashed rgba(56, 189, 248, 0.2); border-radius: 50%;
+            animation: spin 20s linear infinite;
+        }
+        .physics-decor-core {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 20px; height: 20px; background: var(--accent-blue); border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-blue);
+        }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .welcome-screen h1 {
+            font-family: 'Cinzel', serif; font-size: 3rem; font-weight: 700;
+            letter-spacing: 3px; margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, var(--steel-dark) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-screen p {
+            color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin-bottom: 40px; line-height: 1.6;
+        }
+
+        .btn-start {
+            font-family: var(--font-main); font-size: 1.1rem; font-weight: 600;
+            color: var(--bg-space); background: var(--accent-blue); padding: 16px 45px;
+            border: none; border-radius: 12px; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.25);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); letter-spacing: 1px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px); box-shadow: 0 15px 35px rgba(56, 189, 248, 0.45); background: #56c8ff;
+        }
+
+        /* 2. ҮНДСЭН АППАРТЫН СТИЛЬ */
+        .app-container {
+            max-width: 1280px; margin: 0 auto; padding: 40px 20px;
+            opacity: 0; transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.3s;
+        }
+
+        .app-container.visible { opacity: 1; transform: translateY(0); }
+
+        .app-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 20px; margin-bottom: 40px;
+        }
+
+        .logo-title { font-family: 'Cinzel', serif; font-size: 1.6rem; color: #fff; letter-spacing: 1px; }
+
+        .nav-tabs {
+            display: flex; background: rgba(255, 255, 255, 0.03); padding: 6px;
+            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-trigger {
+            background: none; border: none; color: var(--text-muted); padding: 10px 24px;
+            font-size: 0.95rem; font-weight: 500; cursor: pointer; border-radius: 8px; transition: all 0.3s ease;
+        }
+
+        .tab-trigger.active { background: var(--bg-card); color: var(--accent-blue); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+        .tab-content { display: none; animation: fadeView 0.5s ease forwards; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeView { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .studio-layout { display: grid; grid-template-columns: 1fr; gap: 30px; }
+
+        .viewport-wrapper {
+            background: var(--bg-card); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; overflow-x: auto;
+        }
+
+        .canvas-holder { position: relative; background: #050917; border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.1); }
+        .canvas-tip { margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 10px; width: 100%; }
+        .dash-card { background: var(--bg-card); border-radius: 20px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.02); }
+        .dash-card h3 { font-size: 1.1rem; margin-bottom: 20px; color: #fff; font-weight: 600; }
+
+        .slider-group { margin-bottom: 20px; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-muted); }
+        .slider-label span.val-focus { color: var(--accent-blue); font-weight: 600; }
+        
+        .custom-range { -webkit-appearance: none; width: 100%; height: 6px; background: #1e293b; border-radius: 4px; outline: none; }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-blue); cursor: pointer; box-shadow: 0 0 10px var(--accent-blue);
+        }
+
+        /* Дижитал заалт самбар */
+        .digital-readout {
+            background: #090f20; border: 1px solid rgba(255,255,255,0.05); border-radius: 14px;
+            padding: 20px; text-align: center; position: relative; min-height: 110px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .metric-val { font-size: 2.3rem; font-weight: 700; color: var(--accent-green); font-family: monospace; }
+        .metric-unit { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
+
+        .toggle-wrapper { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-switch { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #1e293b; border-radius: 24px; transition: .3s; }
+        .slider-switch:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .3s; }
+        input:checked + .slider-switch { background-color: var(--accent-blue); }
+        input:checked + .slider-switch:before { transform: translateX(22px); }
+
+        /* Challenge хэсэг */
+        .challenge-box { display: flex; flex-direction: column; gap: 15px; }
+        .btn-challenge { background: linear-gradient(135deg, var(--accent-blue), #1d4ed8); color: var(--bg-space); border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .btn-challenge:hover { transform: translateY(-2px); opacity: 0.9; }
+        
+        .direction-indicator {
+            display: flex; justify-content: space-around; background: #090f20; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .dir-badge { font-size: 0.85rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #1e293b; }
+        .dir-badge.active-n { background: var(--accent-coral); color: #000; }
+        .dir-badge.active-s { background: var(--accent-blue); color: #000; }
+
+        /* --- QUIZ PREMIUM STYLE --- */
+        .quiz-top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-card); padding: 20px 30px; border-radius: 18px;
+            border: 1px solid rgba(56, 189, 248, 0.1); margin-bottom: 25px;
+        }
+        .quiz-score-board { font-size: 1.1rem; font-weight: 700; color: var(--accent-green); }
+        .quiz-score-board span { color: #fff; font-family: monospace; background: #090f20; padding: 4px 10px; border-radius: 6px; margin: 0 4px; }
+        
+        .btn-refresh-quiz {
+            background: linear-gradient(135deg, var(--accent-coral), #be123c); color: #fff;
+            border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-refresh-quiz:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(251, 113, 133, 0.3); }
+
+        .quiz-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .quiz-card { background: var(--bg-card); border-radius: 16px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.02); transition: all 0.3s; }
+        .quiz-card.completed { border-color: rgba(52, 211, 153, 0.2); background: linear-gradient(to bottom right, var(--bg-card), #081a24); }
+        .quiz-question { font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; color: #fff; }
+        
+        .options-stack { display: flex; flex-direction: column; gap: 10px; }
+        
+        .option-btn {
+            display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.02);
+            padding: 14px 20px; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+            color: var(--steel-light); font-size: 0.95rem; width: 100%; text-align: left;
+            transition: all 0.2s ease; font-family: var(--font-main);
+        }
+        .option-btn:hover:not(:disabled) { background: rgba(255,255,255,0.07); border-color: var(--accent-blue); }
+        
+        .option-btn.wrong {
+            background: rgba(251, 113, 133, 0.1) !important;
+            border-color: var(--accent-coral) !important;
+            color: var(--accent-coral) !important;
+            text-decoration: line-through; cursor: not-allowed;
+        }
+        .option-btn.correct {
+            background: rgba(52, 211, 153, 0.15) !important;
+            border-color: var(--accent-green) !important;
+            color: var(--accent-green) !important;
+            font-weight: 700; cursor: not-allowed;
+        }
+
+        .quiz-feedback { margin-top: 15px; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: none; }
+
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .theory-content h2 { margin-bottom: 15px; font-family: 'Cinzel', serif; color: #fff;}
+        .theory-content p { color: var(--text-muted); line-height: 1.7; margin-bottom: 20px;}
+        .theory-content ul { padding-left: 20px; color: var(--text-muted); line-height: 1.8;}
+    </style>
+</head>
+<body>
+
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="physics-decor">
+            <div class="physics-decor-core"></div>
+        </div>
+        <h1>Solenoid Magnetic Field</h1>
+        <p>Гүйдэлтэй ороомгийн үүсгэх соронзон орны шугамыг удирдах интерактив лаборатори.</p>
+        <button class="btn-start" onclick="enterLaboratory()">Start Simulator</button>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        
+        <header class="app-header">
+            <div class="logo-title">PhysicLab.mn</div>
+            <nav class="nav-tabs">
+                <button class="tab-trigger active" onclick="switchTab(event, 'sim')">Симулятор</button>
+                <button class="tab-trigger" onclick="switchTab(event, 'theory')">Онолын үндэс</button>
+                <button class="tab-trigger" onclick="switchTab(event, 'quiz')">Сорилт (10 Тест)</button>
+                <button class="tab-trigger" onclick="switchTab(event, 'video')">Видео заавар</button>
+            </nav>
+        </header>
+
+        <main id="tab-sim" class="tab-content active">
+            <div class="studio-layout">
+                <div class="viewport-wrapper">
+                    <div class="canvas-holder">
+                        <canvas id="solenoidCanvas" width="920" height="380"></canvas>
+                    </div>
+                    <div class="canvas-tip">
+                        <span>💡</span> Гүйдлийн чиглэлийг өөрчлөхөд соронзон орны туйлууд (N/S) болон хүчний шугамын сумнууд дагаж хувирна.
+                    </div>
+                </div>
+
+                <div class="dashboard">
+                    <div class="dash-card">
+                        <h3>Solenoid Controls</h3>
+                        
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Ороодсын тоо (Turns)</span>
+                                <span class="val-focus" id="lblTurns">11</span>
+                            </div>
+                            <input type="range" class="custom-range" id="paramTurns" min="5" max="20" step="1" value="11">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Шугамын нягт (Density)</span>
+                                <span class="val-focus" id="lblDensity">1.0</span>
+                            </div>
+                            <input type="range" class="custom-range" id="paramDensity" min="0.2" max="2.0" step="0.1" value="1.0">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Гүйдлийн хүч (Current)</span>
+                                <span class="val-focus" id="lblCurrent">2.5 A</span>
+                            </div>
+                            <input type="range" class="custom-range" id="paramCurrent" min="-5.0" max="5.0" step="0.5" value="2.5">
+                        </div>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>Орны Индукц (Тооцоолол)</h3>
+                        <div class="digital-readout">
+                            <div class="metric-val" id="txtMagneticField">0.35 mT</div>
+                            <div class="metric-unit">Төв хэсэг дэх Соронзон орны индукц ($B$)</div>
+                        </div>
+                        
+                        <div class="toggle-wrapper" style="margin-top: 20px;">
+                            <span>Хүчний шугамыг заах</span>
+                            <label class="switch">
+                                <input type="checkbox" id="chkShowLines" checked>
+                                <span class="slider-switch"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>Соронзон орны туйл</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Максвеллийн шувargын (баруун гарын) дүрмээр тодорхойлогдсон төлөв:</p>
+                        <div class="direction-indicator">
+                            <div class="dir-badge" id="badgeLeft">ЗҮҮН ТАЛ</div>
+                            <div class="dir-badge" id="badgeRight">БАРУУН ТАЛ</div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+                            Ороомог доторх орон: <span style="color:#fff; font-weight:600;">S $\rightarrow$ N чиглэлд</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <section id="tab-theory" class="tab-content theory-content">
+            <div class="dash-card">
+                <h2>Гүйдэлтэй ороомгийн соронзон орны онол</h2>
+                <p>Тусгаарласан дамжуулагч утсыг цилиндр хэлбэртэйгээр нягт ороож хийсэн төхөөрөмжийг <strong>Ороомог (Solenoid)</strong> гэнэ. Үүгээр цахилгаан гүйдэл гүйхэд түүний эргэн тойронд соронзон орон үүсдэг.</p>
+                <p><strong>Соронзон орны индукц ($B$):</strong> Ороомгийн доторх соронзон орон маш жигд байдаг бөгөөд түүний хэмжээг дараах томьёогоор олдог:</p>
+                <p style="text-align: center; font-size: 1.2rem; color: var(--accent-green); margin: 15px 0;">
+                    $$B = \mu_0 \cdot \frac{N \cdot I}{L}$$
+                </p>
+                <p>Үүнд: $\mu_0$ — соронзон тогтмол, $N$ — ороодсын тоо, $I$ — гүйдлийн хүч, $L$ — ороомгийн урт. Симулятороос харахад ороодсын тоо ($N$) болон гүйдэл ($I$) ихсэх тусам соронзон орон улам хүчтэй (нягт) болж байгааг харж болно.</p>
+                <p><strong>Баруун гарын дүрэм (Шувуухай дүрэм):</strong> Баруун гарын дөрвөн хурууг ороомгийн ороодсоор гүйж буй гүйдлийн чиглэлд нугалахад, тэгш өнцгөөр зассан эрхий хуруу нь ороомог доторх соронзон орны чиглэлийг буюу <strong>Хойд туйл (N)</strong>-ыг заана.</p>
+            </div>
+        </section>
+
+        <section id="tab-quiz" class="tab-content">
+            <div class="quiz-top-bar">
+                <div class="quiz-score-board">
+                    Нийт оноо: <span id="globalCorrectCount">0</span> / 10 | Буруу оролдлого: <span id="globalWrongCount">0</span>
+                </div>
+                <button class="btn-refresh-quiz" onclick="resetEntireQuiz()">
+                    🔄 Сорилтыг шинэчлэх
+                </button>
+            </div>
+            <div class="quiz-grid" id="quizGrid"></div>
+        </section>
+
+        <section id="tab-video" class="tab-content">
+            <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/8w3I_bI_HIs" allowfullscreen></iframe>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function enterLaboratory() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.add('visible');
+            setTimeout(() => { initSimulator(); }, 400);
+        }
+
+        function switchTab(event, tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-trigger').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tabId === 'sim') setTimeout(drawSolenoidSystem, 50);
+        }
+
+        // --- СОРОНЗОН ОРНЫ КАНВАС ХӨДӨЛГҮҮР ---
+        const canvas = document.getElementById('solenoidCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const pTurns = document.getElementById('paramTurns');
+        const pDensity = document.getElementById('paramDensity');
+        const pCurrent = document.getElementById('paramCurrent');
+
+        const lblTurns = document.getElementById('lblTurns');
+        const lblDensity = document.getElementById('lblDensity');
+        const lblCurrent = document.getElementById('lblCurrent');
+        const txtField = document.getElementById('txtMagneticField');
+        
+        const chkShowLines = document.getElementById('chkShowLines');
+
+        const badgeLeft = document.getElementById('badgeLeft');
+        const badgeRight = document.getElementById('badgeRight');
+
+        let animationFrameId;
+        let arrowOffset = 0;
+
+        function initSimulator() {
+            [pTurns, pDensity, pCurrent].forEach(slider => {
+                slider.addEventListener('input', updateParams);
+            });
+            chkShowLines.addEventListener('change', drawSolenoidSystem);
+            
+            updateParams();
+            animateArrows();
+        }
+
+        function updateParams() {
+            lblTurns.innerText = pTurns.value;
+            lblDensity.innerText = parseFloat(pDensity.value).toFixed(1);
+            lblCurrent.innerText = parseFloat(pCurrent.value).toFixed(1) + " A";
+            
+            // Соронзон орны индукцийн хийсвэр тооцоолол B = mu0 * n * I
+            let turns = parseInt(pTurns.value);
+            let current = parseFloat(pCurrent.value);
+            let bField = Math.abs(0.012 * turns * current).toFixed(2);
+            txtField.innerText = bField + " mT";
+
+            // Туйлуудыг тодорхойлох
+            if (current > 0) {
+                badgeLeft.innerText = "S (Өмнөд)"; badgeLeft.className = "dir-badge active-s";
+                badgeRight.innerText = "N (Хойд)"; badgeRight.className = "dir-badge active-n";
+            } else if (current < 0) {
+                badgeLeft.innerText = "N (Хойд)"; badgeLeft.className = "dir-badge active-n";
+                badgeRight.innerText = "S (Өмнөд)"; badgeRight.className = "dir-badge active-s";
+            } else {
+                badgeLeft.innerText = "Байхгүй"; badgeLeft.className = "dir-badge";
+                badgeRight.innerText = "Байхгүй"; badgeRight.className = "dir-badge";
+                txtField.innerText = "0.00 mT";
+            }
+
+            drawSolenoidSystem();
+        }
+
+        function animateArrows() {
+            let current = parseFloat(pCurrent.value);
+            if (current !== 0) {
+                // Гүйдлийн чиглэлээс хамаарч гүйх хурд өөр байна
+                arrowOffset += (current > 0 ? 0.8 : -0.8);
+                if (Math.abs(arrowOffset) > 40) arrowOffset = 0;
+                drawSolenoidSystem();
+            }
+            animationFrameId = requestAnimationFrame(animateArrows);
+        }
+
+        function drawSolenoidSystem() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            let turns = parseInt(pTurns.value);
+            let density = parseFloat(pDensity.value);
+            let current = parseFloat(pCurrent.value);
+
+            let startX = 260;
+            let endX = 660;
+            let width = endX - startX;
+            let centerY = 190;
+            let radiusY = 55;
+
+            // 1. СОРОНЗОН ОРНЫ ХҮЧНИЙ ШУГАМУУДЫГ ЗУРАХ
+            if (chkShowLines.checked && current !== 0) {
+                ctx.save();
+                ctx.lineWidth = 1.5;
+                
+                // Нягтшил удирдах тоолуур
+                let baseLines = [15, 30, 45, 65, 90, 120];
+                let activeLinesCount = Math.floor(baseLines.length * density);
+                
+                for(let i=0; i<activeLinesCount; i++) {
+                    let rY = baseLines[i];
+                    ctx.strokeStyle = `rgba(56, 189, 248, ${0.7 - (i * 0.08)})`;
+                    
+                    // Дээд болон доод нумууд (Ороомгийн гадна тал)
+                    drawFieldLoop(startX, endX, centerY, rY, 1, current);
+                    drawFieldLoop(startX, endX, centerY, rY, -1, current);
+                }
+
+                // Төв дундуур нэвтрэх шулуун шугам
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+                ctx.beginPath();
+                ctx.moveTo(50, centerY);
+                ctx.lineTo(870, centerY);
+                ctx.stroke();
+                drawArrowOnLine(50, centerY, 870, centerY, current, arrowOffset);
+                ctx.restore();
+            }
+
+            // 2. ОРООМГИЙН АРЫН ХЭСГИЙГ ЗУРАХ (3D эффект гаргах)
+            ctx.save();
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = '#e2e8f0';
+            for (let i = 0; i < turns; i++) {
+                let x = startX + (i * (width / (turns - 1)));
+                ctx.beginPath();
+                ctx.arc(x, centerY, radiusY, -Math.PI/2, Math.PI/2, true); // Арын хагас нум
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Зүрхэвч блок (Төв гол)
+            ctx.fillStyle = 'rgba(100, 116, 139, 0.2)';
+            ctx.fillRect(startX - 20, centerY - 20, width + 40, 40);
+
+            // 3. ОРООМГИЙН ӨМНӨД ХЭСГИЙГ ЗУРАХ
+            ctx.save();
+            ctx.lineWidth = 6;
+            let copperGrad = ctx.createLinearGradient(0, centerY - radiusY, 0, centerY + radiusY);
+            copperGrad.addColorStop(0, '#f59e0b'); copperGrad.addColorStop(0.5, '#b45309'); copperGrad.addColorStop(1, '#78350f');
+            ctx.strokeStyle = copperGrad;
+            
+            for (let i = 0; i < turns; i++) {
+                let x = startX + (i * (width / (turns - 1)));
+                ctx.beginPath();
+                ctx.arc(x, centerY, radiusY, -Math.PI/2, Math.PI/2, false); // Өмнөд хагас нум
+                ctx.stroke();
+                
+                // Гүйдлийн чиглэлийг харуулах жижиг улаан сумнууд ороомог дээр
+                if(current !== 0) {
+                    ctx.fillStyle = current > 0 ? '#fb7185' : '#38bdf8';
+                    ctx.beginPath();
+                    if(current > 0) {
+                        ctx.moveTo(x + radiusY*0.5, centerY - 10); ctx.lineTo(x + radiusY*0.5 - 5, centerY + 2); ctx.lineTo(x + radiusY*0.5 + 5, centerY + 2);
+                    } else {
+                        ctx.moveTo(x - radiusY*0.5, centerY + 10); ctx.lineTo(x - radiusY*0.5 - 5, centerY - 2); ctx.lineTo(x - radiusY*0.5 + 5, centerY - 2);
+                    }
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        // Хүчний шугамын гоё нум зурах функц
+        function drawFieldLoop(sX, eX, cY, rY, dir, current) {
+            let midX = (sX + eX) / 2;
+            let ctrlY = cY + (rY * 2.2 * dir);
+
+            ctx.beginPath();
+            ctx.moveTo(sX, cY);
+            ctx.quadraticCurveTo(midX, ctrlY, eX, cY);
+            ctx.stroke();
+
+            // Шугам дээр гүйх сумнуудын анимаци
+            let t = 0.5 + (arrowOffset / 100);
+            if(t < 0) t += 1; if(t > 1) t -= 1;
+            
+            // Безиерийн цэг олох
+            let arrowX = (1-t)*(1-t)*sX + 2*(1-t)*t*midX + t*t*eX;
+            let arrowY = (1-t)*(1-t)*cY + 2*(1-t)*t*ctrlY + t*t*cY;
+
+            // Чиглэлээс хамаарч сумны өнцөг
+            ctx.save();
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+            ctx.translate(arrowX, arrowY);
+            
+            let angle = Math.atan2(cY - ctrlY, sX - midX);
+            if((current > 0 && dir > 0) || (current < 0 && dir < 0)) angle += Math.PI;
+            ctx.rotate(angle);
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(-8, -4); ctx.lineTo(-8, 4);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawArrowOnLine(x1, y1, x2, y2, current, offset) {
+            let steps = [0.2, 0.4, 0.6, 0.8];
+            steps.forEach(st => {
+                let t = st + (offset / 400);
+                if(t < 0) t += 1; if(t > 1) t -= 1;
+                let ax = x1 + (x2 - x1) * t;
+                let ay = y1 + (y2 - y1) * t;
+
+                ctx.save();
+                ctx.fillStyle = '#38bdf8';
+                ctx.translate(ax, ay);
+                if (current < 0) ctx.rotate(Math.PI);
+                ctx.beginPath();
+                ctx.moveTo(5, 0); ctx.lineTo(-5, -4); ctx.lineTo(-5, 4);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        // --- 🧠 ГАРАЛТАЙ УХААЛАГ СОРИЛТ СИСТЕМ (МАГНЕТИЗМ СЭДЭВ) ---
+        const quizData = [
+            { q: "Гүйдэлтэй ороомгийн дотор талд үүсэх соронзон орон ямар шинж чанартай байдаг вэ?", a: ["Маш жигд (нэгэн төрлийн)", "Төв хэсэгтээ тэгтэй тэнцүү", "Үргэлж хувьсах, замбараагүй"], c: 0 },
+            { q: "Ороомгийн үүсгэх соронзон орны индукцийг ихэсгэхийн тулд аль параметрийг нэмэгдүүлэх вэ?", a: ["Ороомгийн урт L", "Гүйдлийн хүч I болон ороодсын тоо N", "Утсыг нарийсгах"], c: 1 },
+            { q: "Ороомгийн туйлыг тодорхойлоход баруун гарын аль дүрмийг баримталдаг вэ?", a: ["Шувargын (эрхий хуруу соронзон орныг заах)", "Зүүн гарын дүрэм", "Ленцийн дүрэм"], c: 0 },
+            { q: "Гүйдэлтэй ороомог дундуур зөөлөн төмөр зүрхэвч шургуулбал соронзон орон хэрхэн өөрчлөгдөх вэ?", a: ["Өөрчлөгдөхгүй", "Сулрана", "Маш хүчтэй болж ихсэж цахилгаан соронзон үүснэ"], c: 2 },
+            { q: "Соронзон орны индукцийн SI систем дэх үндсэн нэгж юу вэ?", a: ["Вольт (V)", "Тесла (T)", "Ампер (A)"], c: 1 },
+            { q: "Ороомгийн гадна талд соронзон хүчний шугамууд аль туйлаас аль туйл руу чиглэдэг вэ?", a: ["Хойноос өмнөд рүү (N -> S)", "Өмнөдөөс хойд руу (S -> N)", "Чиглэл байхгүй"], c: 0 },
+            { q: "Ороомог дундуур гүйх цахилгаан гүйдлийг 0 болговол түүний соронзон шинж чанар яах вэ?", a: ["Хэвээр үлдэнэ", "Шууд алга болно", "Улам хүчтэй болно"], c: 1 },
+            { q: "Томьёонд ашиглагддаг mu0 (μ₀) тогтмол нь ямар утгатай вэ?", a: ["Ороодсын нягт", "Вакуумын соронзон нэвтрүүлэх чанар", "Цахилгаан эсэргүүцэл"], c: 1 },
+            { q: "Гүйдлийн чиглэлийг эсрэгээр нь эргүүлбэл ороомгийн соронзон орны чиглэл хэрхэх вэ?", a: ["Эсрэгээрээ солигдоно (туйлууд байр солино)", "Яг хэвээрээ үлдэнэ", "Орон сарна"], c: 0 },
+            { q: "Ороомгийн ороодсын тоог (turns) 2 дахин ихэсгэвэл соронзон орон хэрхэн өөрчлөгдөх вэ?", a: ["2 дахин сулрана", "4 дахин ихсэж хүчтэй болно", "2 дахин ихсэж хүчтэй болно"], c: 2 }
+        ];
+
+        let correctAnswersCount = 0;
+        let wrongAttemptsCount = 0;
+        let answeredQuestions = new Set();
+
+        function renderQuiz() {
+            const container = document.getElementById('quizGrid');
+            container.innerHTML = ''; 
+
+            quizData.forEach((item, qIndex) => {
+                let card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.id = `quiz_card_${qIndex}`;
+                
+                let qText = document.createElement('div');
+                qText.className = 'quiz-question';
+                qText.innerText = `${qIndex + 1}. ${item.q}`;
+                card.appendChild(qText);
+                
+                let optionsStack = document.createElement('div');
+                optionsStack.className = 'options-stack';
+                
+                item.a.forEach((opt, optIndex) => {
+                    let btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.id = `opt_${qIndex}_${optIndex}`;
+                    btn.innerHTML = `<span>• ${opt}</span>`;
+                    
+                    btn.onclick = () => handleOptionClick(qIndex, optIndex, item.c);
+                    optionsStack.appendChild(btn);
+                });
+                
+                card.appendChild(optionsStack);
+                
+                let feedback = document.createElement('div');
+                feedback.className = 'quiz-feedback';
+                feedback.id = `quiz_fb_${qIndex}`;
+                card.appendChild(feedback);
+                
+                container.appendChild(card);
+            });
+            
+            updateScoreBoard();
+        }
+
+        function handleOptionClick(qIndex, selectedIndex, correctIndex) {
+            if (answeredQuestions.has(qIndex)) return;
+
+            let selectedBtn = document.getElementById(`opt_${qIndex}_${selectedIndex}`);
+            let fb = document.getElementById(`quiz_fb_${qIndex}`);
+            fb.style.display = 'block';
+
+            if (selectedIndex === correctIndex) {
+                selectedBtn.classList.add('correct');
+                answeredQuestions.add(qIndex);
+                correctAnswersCount++;
+                
+                fb.style.background = 'rgba(52, 211, 153, 0.1)';
+                fb.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-green').trim();
+                fb.innerText = "Зөв хариуллаа! 🎉";
+                
+                document.getElementById(`quiz_card_${qIndex}`).classList.add('completed');
+                disableAllOptions(qIndex);
+            } else {
+                if (!selectedBtn.classList.contains('wrong')) {
+                    selectedBtn.classList.add('wrong');
+                    selectedBtn.disabled = true;
+                    wrongAttemptsCount++;
+                    
+                    fb.style.background = 'rgba(251, 113, 133, 0.1)';
+                    fb.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-coral').trim();
+                    fb.innerText = "Буруу байна! Өөр хариулт сонгож үзнэ үү. ❌";
+                }
+            }
+            
+            updateScoreBoard();
+        }
+
+        function disableAllOptions(qIndex) {
+            quizData[qIndex].a.forEach((_, optIndex) => {
+                let btn = document.getElementById(`opt_${qIndex}_${optIndex}`);
+                btn.disabled = true;
+                if (!btn.classList.contains('correct')) {
+                    btn.style.opacity = '0.4';
+                    btn.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        function updateScoreBoard() {
+            document.getElementById('globalCorrectCount').innerText = correctAnswersCount;
+            document.getElementById('globalWrongCount').innerText = wrongAttemptsCount;
+        }
+
+        function resetEntireQuiz() {
+            correctAnswersCount = 0;
+            wrongAttemptsCount = 0;
+            answeredQuestions.clear();
+            renderQuiz();
+        }
+
+        window.onload = function() { renderQuiz(); };
+    </script>
+</body>
+</html>

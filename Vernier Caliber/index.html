@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Физик Лаборатори: Универсал Штангенциркуль</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-space: #070b19;
+            --bg-card: #0d152d;
+            --bg-glass: rgba(13, 21, 45, 0.7);
+            --steel-light: #e2e8f0;
+            --steel-dark: #64748b;
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-coral: #fb7185;
+            --accent-yellow: #f59e0b;
+            --text-muted: #94a3b8;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-space);
+            color: var(--steel-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+            background-size: 25px 25px;
+        }
+
+        /* 1. ЭХЛЭХ НҮҮР ХУУДАС */
+        .welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #0f1c3f 0%, var(--bg-space) 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 999; transition: all 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+            padding: 20px; text-align: center;
+        }
+
+        .welcome-screen.hidden {
+            opacity: 0; visibility: hidden; transform: translateY(-100%);
+        }
+
+        .physics-decor {
+            position: relative; width: 100px; height: 100px; margin-bottom: 30px;
+            border: 2px dashed rgba(56, 189, 248, 0.2); border-radius: 50%;
+            animation: spin 20s linear infinite;
+        }
+        .physics-decor-core {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 20px; height: 20px; background: var(--accent-blue); border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-blue);
+        }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .welcome-screen h1 {
+            font-family: 'Cinzel', serif; font-size: 3rem; font-weight: 700;
+            letter-spacing: 3px; margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, var(--steel-dark) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-screen p {
+            color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin-bottom: 40px; line-height: 1.6;
+        }
+
+        .btn-start {
+            font-family: var(--font-main); font-size: 1.1rem; font-weight: 600;
+            color: var(--bg-space); background: var(--accent-blue); padding: 16px 45px;
+            border: none; border-radius: 12px; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.25);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); letter-spacing: 1px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px); box-shadow: 0 15px 35px rgba(56, 189, 248, 0.45); background: #56c8ff;
+        }
+
+        /* 2. ҮНДСЭН АППАРТЫН СТИЛЬ */
+        .app-container {
+            max-width: 1280px; margin: 0 auto; padding: 40px 20px;
+            opacity: 0; transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.3s;
+        }
+
+        .app-container.visible { opacity: 1; transform: translateY(0); }
+
+        .app-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 20px; margin-bottom: 40px;
+        }
+
+        .logo-title { font-family: 'Cinzel', serif; font-size: 1.6rem; color: #fff; letter-spacing: 1px; }
+
+        .nav-tabs {
+            display: flex; background: rgba(255, 255, 255, 0.03); padding: 6px;
+            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-trigger {
+            background: none; border: none; color: var(--text-muted); padding: 10px 24px;
+            font-size: 0.95rem; font-weight: 500; cursor: pointer; border-radius: 8px; transition: all 0.3s ease;
+        }
+
+        .tab-trigger.active { background: var(--bg-card); color: var(--accent-blue); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+        .tab-content { display: none; animation: fadeView 0.5s ease forwards; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeView { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .studio-layout { display: grid; grid-template-columns: 1fr; gap: 30px; }
+
+        .viewport-wrapper {
+            background: var(--bg-card); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; overflow-x: auto;
+        }
+
+        .canvas-holder { position: relative; background: #111a36; border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.1); cursor: grab; }
+        .canvas-holder:active { cursor: grabbing; }
+        .canvas-tip { margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 10px; width: 100%; }
+        .dash-card { background: var(--bg-card); border-radius: 20px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.02); }
+        .dash-card h3 { font-size: 1.1rem; margin-bottom: 20px; color: #fff; font-weight: 600; }
+
+        .slider-container { margin-bottom: 20px; }
+        .custom-range { -webkit-appearance: none; width: 100%; height: 6px; background: #1e293b; border-radius: 4px; outline: none; }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-blue); cursor: pointer; box-shadow: 0 0 10px var(--accent-blue);
+        }
+
+        .step-controls { display: flex; gap: 12px; }
+        .btn-step {
+            flex: 1; background: #1e293b; border: 1px solid rgba(255,255,255,0.05); color: #fff;
+            padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+        }
+        .btn-step:hover { background: #2d3748; border-color: var(--accent-blue); }
+
+        /* Дижитал уншилт */
+        .digital-readout {
+            background: #090f20; border: 1px solid rgba(255,255,255,0.05); border-radius: 14px;
+            padding: 20px; text-align: center; position: relative; min-height: 110px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .metric-val { font-size: 2.5rem; font-weight: 700; color: var(--accent-green); font-family: monospace; }
+        .hidden-value { filter: blur(8px); opacity: 0.3; }
+        .hidden-overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 600; color: var(--accent-coral); font-size: 1.1rem; }
+
+        .toggle-wrapper { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-switch { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #1e293b; border-radius: 24px; transition: .3s; }
+        .slider-switch:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .3s; }
+        input:checked + .slider-switch { background-color: var(--accent-blue); }
+        input:checked + .slider-switch:before { transform: translateX(22px); }
+
+        /* Challenge хэсэг */
+        .challenge-box { display: flex; flex-direction: column; gap: 15px; }
+        .btn-challenge { background: linear-gradient(135deg, var(--accent-blue), #1d4ed8); color: var(--bg-space); border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .btn-challenge:hover { transform: translateY(-2px); opacity: 0.9; }
+        
+        .challenge-input-row { display: flex; gap: 10px; }
+        .challenge-input { flex: 1; background: #090f20; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; padding: 12px; font-size: 1.1rem; text-align: center; outline: none; }
+        .challenge-input:focus { border-color: var(--accent-blue); }
+        
+        .challenge-feedback { padding: 12px; border-radius: 10px; text-align: center; font-weight: 600; font-size: 0.95rem; display: none; }
+        .btn-cancel { background: #334155; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-cancel:hover { background: #475569; }
+
+        /* --- ШИНЭЧЛЭГДСЭН СОРИЛТЫН СТИЛЬ (QUIZ PREMIUM STYLE) --- */
+        .quiz-top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-card); padding: 20px 30px; border-radius: 18px;
+            border: 1px solid rgba(56, 189, 248, 0.1); margin-bottom: 25px;
+        }
+        .quiz-score-board { font-size: 1.1rem; font-weight: 700; color: var(--accent-green); }
+        .quiz-score-board span { color: #fff; font-family: monospace; background: #090f20; padding: 4px 10px; border-radius: 6px; margin: 0 4px; }
+        
+        .btn-refresh-quiz {
+            background: linear-gradient(135deg, var(--accent-coral), #be123c); color: #fff;
+            border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-refresh-quiz:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(251, 113, 133, 0.3); }
+
+        .quiz-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .quiz-card { background: var(--bg-card); border-radius: 16px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.02); transition: all 0.3s; }
+        .quiz-card.completed { border-color: rgba(52, 211, 153, 0.2); background: linear-gradient(to bottom right, var(--bg-card), #081a24); }
+        .quiz-question { font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; color: #fff; }
+        
+        .options-stack { display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Интерактив Сонголтын Түлхүүрүүд */
+        .option-btn {
+            display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.02);
+            padding: 14px 20px; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+            color: var(--steel-light); font-size: 0.95rem; width: 100%; text-align: left;
+            transition: all 0.2s ease; font-family: var(--font-main);
+        }
+        .option-btn:hover:not(:disabled) { background: rgba(255,255,255,0.07); border-color: var(--accent-blue); }
+        
+        /* Сонголтын төлөвүүд */
+        .option-btn.wrong {
+            background: rgba(251, 113, 133, 0.1) !important;
+            border-color: var(--accent-coral) !important;
+            color: var(--accent-coral) !important;
+            text-decoration: line-through; cursor: not-allowed;
+        }
+        .option-btn.correct {
+            background: rgba(52, 211, 153, 0.15) !important;
+            border-color: var(--accent-green) !important;
+            color: var(--accent-green) !important;
+            font-weight: 700; cursor: not-allowed;
+        }
+
+        .quiz-feedback { margin-top: 15px; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: none; }
+
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .theory-content h2 { margin-bottom: 15px; font-family: 'Cinzel', serif; color: #fff;}
+        .theory-content p { color: var(--text-muted); line-height: 1.7; margin-bottom: 20px;}
+        .theory-content ul { padding-left: 20px; color: var(--text-muted); line-height: 1.8;}
+    </style>
+</head>
+<body>
+
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="physics-decor">
+            <div class="physics-decor-core"></div>
+        </div>
+        <h1>Universal Vernier Caliper</h1>
+        <p>Механик нарийвчлал бүхий хэмжилтийн онол, интерактив калиперийн симулятор орчин.</p>
+        <button class="btn-start" onclick="enterLaboratory()">Start Simulator</button>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        
+        <header class="app-header">
+            <div class="logo-title">PhysicLab.mn</div>
+            <nav class="nav-tabs">
+                <button class="tab-trigger active" onclick="switchTab(event, 'sim')">Симулятор</button>
+                <button class="tab-trigger" onclick="switchTab(event, 'theory')">Аппаратын тухай</button>
+                <button class="tab-trigger" onclick="switchTab(event, 'quiz')">Сорилт (10 Тест)</button>
+                <button class="tab-trigger" onclick="switchTab(event, 'video')">Видео заавар</button>
+            </nav>
+        </header>
+
+        <main id="tab-sim" class="tab-content active">
+            <div class="studio-layout">
+                <div class="viewport-wrapper">
+                    <div class="canvas-holder" id="canvasHolder">
+                        <canvas id="caliperCanvas" width="920" height="340"></canvas>
+                    </div>
+                    <div class="canvas-tip">
+                        <span>💡</span> Механик хөдөлгөөнт верниер хуваарь дээр дарж хулганаар баруун, зүүн тийш шууд чирж хөдөлгөнө үү.
+                    </div>
+                </div>
+
+                <div class="dashboard">
+                    <div class="dash-card">
+                        <h3>Нарийн Удирдлага</h3>
+                        <div class="slider-container">
+                            <input type="range" class="custom-range" id="mainCaliperSlider" min="0" max="100" step="0.1" value="0">
+                        </div>
+                        <div class="step-controls">
+                            <button class="btn-step" onclick="stepCaliper(-0.1)">- 0.1 мм</button>
+                            <button class="btn-step" onclick="stepCaliper(0.1)">+ 0.1 мм</button>
+                        </div>
+                        
+                        <div class="toggle-wrapper" style="margin-top: 25px;">
+                            <span>Хэмжилтийн хариуг харуулах</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggleReadout" checked onchange="toggleReadoutVisibility()">
+                                <span class="slider-switch"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-wrapper">
+                            <span>Уншилтын удирдамж (Заагч шугам)</span>
+                            <label class="switch">
+                                <input type="checkbox" id="toggleGuides" checked onchange="draw()">
+                                <span class="slider-switch"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>Лабораторийн Уншилт</h3>
+                        <div class="digital-readout">
+                            <div class="metric-val" id="digitalValue">0.00 mm</div>
+                            <div class="hidden-overlay-text" id="hiddenOverlayText" style="display: none;">🔒 Хариуг нуусан</div>
+                        </div>
+                        <div style="margin-top: 15px; font-size: 0.9rem; color: var(--text-muted); text-align: center;">
+                            Үндсэн хуваарь: <span id="calcMain" style="color:#fff;">0</span> мм | Верниер хуваарь: <span id="calcVernier" style="color:#fff;">0</span> × 0.1 мм
+                        </div>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>Шалгах Даалгавар</h3>
+                        <div class="challenge-box">
+                            <button class="btn-challenge" id="btnChallengeMain" onclick="startChallenge()">Санамсаргүй хэмжээ авах</button>
+                            <div class="challenge-input-row">
+                                <input type="number" class="challenge-input" id="challengeInput" placeholder="0.0" step="0.1" disabled>
+                                <button class="btn-step" id="btnChallengeSubmit" onclick="checkChallenge()" disabled>Шалгах</button>
+                            </div>
+                            <div class="challenge-feedback" id="challengeFeedback"></div>
+                            <button class="btn-cancel" id="btnChallengeCancel" onclick="exitChallengeMode()" style="display: none;">Горимоос гарах / Цуцлах</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <section id="tab-theory" class="tab-content theory-content">
+            <div class="dash-card">
+                <h2>Универсал Штангенциркуль (Universal Vernier Caliper) онолын үндэс</h2>
+                <p>Универсал калипер нь шугаман хэмжээсийг ердийн шугамаас 10 дахин өндөр нарийвчлалтай хэмжихэд зориулагдсан механик багаж юм.</p>
+                <p><strong>Хамгийн бага хуваарь (Least Count):</strong> Энэхүү симуляторт ашигласан универсал калипер нь 0.1 мм-ийн нарийвчлалтай. Энэ нь үндсэн хуваарийн 9 мм-ийн уртыг верниер хуваарь дээр 10 тэнцүү хэсэгт хувааж гаргаж авсан бөгөөд хуваарь бүрийн зөрүү нь яг $1\text{ мм} - 0.9\text{ мм} = 0.1\text{ мм}$ байдаг.</p>
+                <p><strong>Хэмжилтийг зөв унших дүрэм:</strong></p>
+                <ul>
+                    <li>1. Верниер хуваарийн хамгийн зүүн талын "0" зураас Үндсэн хуваарийн аль мм-ийг давсан байгааг харна (Энэ нь бүтэн миллиметр болно).</li>
+                    <li>2. Верниер хуваарийн хэд дэх зураас Үндсэн хуваарийн аль нэг зураастай яг босоо тэнхлэгийн дагуу яв цав давхцаж байгааг харна (Энэ нь бутархай мм болно).</li>
+                    <li>3. Бүтэн миллиметр дээр бутархайг нэмснээр эцсийн хэмжээ гарна.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="tab-quiz" class="tab-content">
+            <div class="quiz-top-bar">
+                <div class="quiz-score-board">
+                    Нийт оноо: <span id="globalCorrectCount">0</span> / 10 | Буруу оролдлого: <span id="globalWrongCount">0</span>
+                </div>
+                <button class="btn-refresh-quiz" onclick="resetEntireQuiz()">
+                    🔄 Сорилтыг шинэчлэх
+                </button>
+            </div>
+            <div class="quiz-grid" id="quizGrid"></div>
+        </section>
+
+        <section id="tab-video" class="tab-content">
+            <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/yDxxQvKMeQs" allowfullscreen></iframe>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function enterLaboratory() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.add('visible');
+            setTimeout(() => { draw(); }, 400);
+        }
+
+        function switchTab(event, tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-trigger').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tabId === 'sim') setTimeout(draw, 50);
+        }
+
+        // --- КАНВАС ХӨДӨЛГҮҮР ---
+        const canvas = document.getElementById('caliperCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('mainCaliperSlider');
+        const digitalValueDisplay = document.getElementById('digitalValue');
+        
+        let currentValue = 0.0;
+        const scalePx = 6.5; 
+        const originX = 140; 
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartValue = 0;
+        
+        let isChallengeMode = false;
+        let challengeTargetValue = 0;
+
+        slider.addEventListener('input', (e) => {
+            if(!isChallengeMode) {
+                currentValue = parseFloat(e.target.value);
+                updateOutputs();
+            }
+        });
+
+        const canvasHolder = document.getElementById('canvasHolder');
+        canvasHolder.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const currentVernierX = originX + (currentValue * scalePx);
+            
+            if (clickX >= currentVernierX && clickX <= currentVernierX + 160) {
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartValue = currentValue;
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - dragStartX;
+            let newValue = dragStartValue + (deltaX / scalePx);
+            if (newValue < 0) newValue = 0;
+            if (newValue > 100) newValue = 100;
+            
+            currentValue = Math.round(newValue * 10) / 10;
+            slider.value = currentValue;
+            updateOutputs();
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        canvasHolder.addEventListener('touchstart', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const currentVernierX = originX + (currentValue * scalePx);
+            if (touchX >= currentVernierX && touchX <= currentVernierX + 160) {
+                isDragging = true;
+                dragStartX = e.touches[0].clientX;
+                dragStartValue = currentValue;
+                e.preventDefault();
+            }
+        });
+
+        canvasHolder.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.touches[0].clientX - dragStartX;
+            let newValue = dragStartValue + (deltaX / scalePx);
+            if (newValue < 0) newValue = 0;
+            if (newValue > 100) newValue = 100;
+            currentValue = Math.round(newValue * 10) / 10;
+            slider.value = currentValue;
+            updateOutputs();
+            e.preventDefault();
+        });
+
+        canvasHolder.addEventListener('touchend', () => { isDragging = false; });
+
+        function stepCaliper(amount) {
+            let n = currentValue + amount;
+            if (n >= 0 && n <= 100) {
+                currentValue = Math.round(n * 10) / 10;
+                slider.value = currentValue;
+                updateOutputs();
+            }
+        }
+
+        function updateOutputs() {
+            let mainPart = Math.floor(currentValue);
+            let vernierPart = Math.round((currentValue - mainPart) * 10);
+            if(vernierPart === 10) { mainPart += 1; vernierPart = 0; }
+
+            document.getElementById('calcMain').innerText = mainPart;
+            document.getElementById('calcVernier').innerText = vernierPart;
+
+            if(!isChallengeMode) {
+                digitalValueDisplay.innerText = currentValue.toFixed(1) + " mm";
+            }
+            draw();
+        }
+
+        function toggleReadoutVisibility() {
+            const isVisible = document.getElementById('toggleReadout').checked;
+            if (isVisible && !isChallengeMode) {
+                digitalValueDisplay.classList.remove('hidden-value');
+                document.getElementById('hiddenOverlayText').style.display = 'none';
+            } else {
+                digitalValueDisplay.classList.add('hidden-value');
+                document.getElementById('hiddenOverlayText').style.display = 'block';
+            }
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const showGuides = document.getElementById('toggleGuides').checked;
+            const currentVernierX = originX + (currentValue * scalePx);
+
+            let mainPart = Math.floor(currentValue);
+            let vernierPart = Math.round((currentValue - mainPart) * 10);
+            if(vernierPart === 10) { mainPart += 1; vernierPart = 0; }
+
+            if(currentValue > 0) {
+                let objGrad = ctx.createLinearGradient(originX, 140, originX, 240);
+                objGrad.addColorStop(0, '#1e293b'); objGrad.addColorStop(1, '#334155');
+                ctx.fillStyle = objGrad;
+                ctx.fillRect(originX, 140, currentValue * scalePx, 100);
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+                ctx.strokeRect(originX, 140, currentValue * scalePx, 100);
+            }
+
+            ctx.save();
+            let steelGrad = ctx.createLinearGradient(0, 80, 0, 140);
+            steelGrad.addColorStop(0, '#cbd5e1'); steelGrad.addColorStop(0.5, '#f1f5f9'); steelGrad.addColorStop(1, '#94a3b8');
+            ctx.fillStyle = steelGrad;
+            ctx.fillRect(20, 80, 880, 60); 
+            ctx.fillRect(100, 140, 40, 120); 
+            ctx.fillRect(120, 20, 20, 60);  
+            ctx.restore();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '500 11px var(--font-main)';
+            for (let i = 0; i <= 110; i++) {
+                let x = originX + (i * scalePx);
+                if (i % 10 === 0) {
+                    ctx.fillRect(x, 80, 2, 22);
+                    ctx.fillText((i/10).toString(), x - 4, 115);
+                } else if (i % 5 === 0) {
+                    ctx.fillRect(x, 80, 1.2, 14);
+                } else {
+                    ctx.fillRect(x, 80, 0.8, 9);
+                }
+            }
+
+            ctx.save();
+            ctx.translate(currentVernierX - originX, 0);
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+            
+            let vernierGrad = ctx.createLinearGradient(originX, 40, originX, 150);
+            vernierGrad.addColorStop(0, '#f8fafc'); vernierGrad.addColorStop(1, '#cbd5e1');
+            ctx.fillStyle = vernierGrad;
+            
+            ctx.fillRect(originX, 60, 145, 80);  
+            ctx.fillRect(originX, 140, 35, 120); 
+            ctx.fillRect(originX, 20, 15, 60);   
+            
+            ctx.fillStyle = '#111a36';
+            ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+            ctx.fillRect(originX + 15, 75, 115, 45);
+            
+            let vernierTotalWidthPx = 9 * scalePx;
+            for (let j = 0; j <= 10; j++) {
+                let vx = originX + (j * (vernierTotalWidthPx / 10));
+                
+                if (isChallengeMode && j === vernierPart) {
+                    ctx.fillStyle = '#f59e0b'; 
+                    ctx.fillRect(vx, 60, 2.5, 13); 
+                } else {
+                    ctx.fillStyle = '#ef4444'; 
+                    ctx.fillRect(vx, 60, 1.2, 11);
+                }
+                
+                ctx.font = '700 11px var(--font-main)';
+                ctx.fillText(j.toString(), vx - 3, 54);
+            }
+            ctx.restore();
+
+            if (showGuides) {
+                if (isChallengeMode) {
+                    let matchingMainIndex = mainPart + vernierPart;
+                    let matchX = originX + (matchingMainIndex * scalePx);
+                    ctx.strokeStyle = '#f59e0b'; 
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(matchX, 50); ctx.lineTo(matchX, 95); ctx.stroke();
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath(); ctx.arc(matchX, 66, 4, 0, 2 * Math.PI); ctx.fill();
+                } else {
+                    ctx.strokeStyle = varColor('--accent-coral');
+                    ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+                    ctx.beginPath(); ctx.moveTo(currentVernierX, 40); ctx.lineTo(currentVernierX, 140); ctx.stroke();
+                    
+                    let matchingMainIndex = mainPart + vernierPart;
+                    let matchX = originX + (matchingMainIndex * scalePx);
+                    ctx.strokeStyle = varColor('--accent-green');
+                    ctx.lineWidth = 2; ctx.setLineDash([]);
+                    ctx.beginPath(); ctx.moveTo(matchX, 50); ctx.lineTo(matchX, 95); ctx.stroke();
+                    ctx.fillStyle = varColor('--accent-green');
+                    ctx.beginPath(); ctx.arc(matchX, 66, 4, 0, 2 * Math.PI); ctx.fill();
+                }
+            }
+        }
+
+        function varColor(varName) { return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+
+        // --- CHALLENGE СИСТЕМ ---
+        function startChallenge() {
+            isChallengeMode = true;
+            document.getElementById('toggleReadout').checked = false;
+            toggleReadoutVisibility();
+
+            challengeTargetValue = Math.floor(Math.random() * 700) / 10; 
+            currentValue = challengeTargetValue;
+            slider.value = currentValue;
+            
+            document.getElementById('challengeInput').disabled = false;
+            document.getElementById('challengeInput').value = '';
+            document.getElementById('btnChallengeSubmit').disabled = false;
+            document.getElementById('btnChallengeMain').style.display = 'none';
+            document.getElementById('btnChallengeCancel').style.display = 'block';
+            
+            let fb = document.getElementById('challengeFeedback');
+            fb.style.display = 'block'; fb.style.background = '#1e293b'; fb.style.color = '#fff';
+            fb.innerText = "Штангенциркулийг санамсаргүй байрлалд авууллаа. Шар шугамыг харж заалтыг уншина уу.";
+            updateOutputs();
+        }
+
+        function exitChallengeMode() {
+            isChallengeMode = false;
+            document.getElementById('toggleReadout').checked = true;
+            toggleReadoutVisibility();
+            document.getElementById('challengeInput').disabled = true;
+            document.getElementById('btnChallengeSubmit').disabled = true;
+            document.getElementById('btnChallengeMain').style.display = 'block';
+            document.getElementById('btnChallengeCancel').style.display = 'none';
+            document.getElementById('challengeFeedback').style.display = 'none';
+            updateOutputs();
+        }
+
+        function checkChallenge() {
+            let userAns = parseFloat(document.getElementById('challengeInput').value);
+            let fb = document.getElementById('challengeFeedback');
+            if (isNaN(userAns)) { alert("Тоо оруулна уу!"); return; }
+
+            if (Math.abs(userAns - challengeTargetValue) < 0.05) {
+                fb.style.background = 'rgba(52, 211, 153, 0.15)';
+                fb.style.color = varColor('--accent-green');
+                fb.innerText = "Маш зөв уншлаа! Баяр хүргэе! 🎉";
+                setTimeout(exitChallengeMode, 2000);
+            } else {
+                fb.style.background = 'rgba(251, 113, 133, 0.15)';
+                fb.style.color = varColor('--accent-coral');
+                fb.innerText = "Уншилт буруу байна. Шар өнгөтэй нониус болон үндсэн хуваарийг дахин сайн хараарай.";
+            }
+            updateOutputs();
+        }
+
+        // --- 🧠 ГАРАЛТАЙ УХААЛАГ СОРИЛТ СИСТЕМ (QUIZ ENGINE) ---
+        const quizData = [
+            { q: "Универсал штангенциркулийн үндсэн хуваарийн нэг жижиг зураас ямар хэмжээг заадаг вэ?", a: ["1 мм", "0.1 мм", "0.5 мм"], c: 0 },
+            { q: "Энэхүү симуляторын верниер хуваарийн нарийвчлал (Least Count) хэд вэ?", a: ["0.02 мм", "0.1 мм", "1 мм"], c: 1 },
+            { q: "Багажны хоёр эрүү хаалттай байхад верниерийн 0 зураас үндсэн хуваарийн 0-ээс баруун тийш байвал ямар алдаа үүсэх вэ?", a: ["Сөрөг тэг алдаа", "Эерэг тэг алдаа", "Алдаагүй"], c: 1 },
+            { q: "Дотоод диаметрийг (жишээ нь хоолойн дотор тал) калиперийн аль хэсгээр хэмждэг вэ?", a: ["Доод том эрүү", "Гүн хэмжигч", "Дээд жижиг эрүү"], c: 2 },
+            { q: "Хэмжилтийн заалтыг уншихдаа хамгийн түрүүнд верниер хуваарийн аль шугамыг харах ёстой вэ?", a: ["Хамгийн сүүлийн зураас", "Төвийн зураас", "Хамгийн зүүн талын '0' зураас"], c: 2 },
+            { q: "Верниер хуваарь дээр 5 дахь зураас үндсэн хуваарийн зураастай яг таарч байвал бутархай хэсэг нь хэд болох вэ?", a: ["0.05 мм", "0.5 мм", "5.0 мм"], c: 1 },
+            { q: "Хэрэв верниер хуваарийн 0 зураас үндсэн хуваарийн 12 ба 13-ын дунд байвал бүтэн миллиметр нь хэд вэ?", a: ["12 мм", "13 мм", "12.5 мм"], c: 0 },
+            { q: "Штангенциркулийн хөдөлгөөнт хэсгийг хүссэн байрлалдаа бэхэлж хэмжээг алдагдуулахгүй барих үүрэгтэй деталь аль нь вэ?", a: ["Түгжигч эрэг (Screw)", "Гүн хэмжигч", "Үндсэн бие"], c: 0 },
+            { q: "Хамгийн бага хуваарийг олох зөв томьёо аль нь вэ?", a: ["1 ҮХХ + 1 ВХХ", "1 ҮХХ - 1 ВХХ", "1 ВХХ / 10"], c: 1 },
+            { q: "Нарийн стаканы гүнийг хэмжихийн тулд багажийн хаанаас цухуйж гарах нарийн төмрийг ашиглах вэ?", a: ["Доод эрүү", "Гүн хэмжигч шугам (Depth Bar)", "Дээд эрүү"], c: 1 }
+        ];
+
+        // Глобал онооны хувьсагчид
+        let correctAnswersCount = 0;
+        let wrongAttemptsCount = 0;
+        let answeredQuestions = new Set(); // Батлагдсан зөв асуултууд
+
+        function renderQuiz() {
+            const container = document.getElementById('quizGrid');
+            container.innerHTML = ''; 
+
+            quizData.forEach((item, qIndex) => {
+                let card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.id = `quiz_card_${qIndex}`;
+                
+                let qText = document.createElement('div');
+                qText.className = 'quiz-question';
+                qText.innerText = `${qIndex + 1}. ${item.q}`;
+                card.appendChild(qText);
+                
+                let optionsStack = document.createElement('div');
+                optionsStack.className = 'options-stack';
+                
+                item.a.forEach((opt, optIndex) => {
+                    let btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.id = `opt_${qIndex}_${optIndex}`;
+                    btn.innerHTML = `<span>• ${opt}</span>`;
+                    
+                    // Дарж шалгах функц
+                    btn.onclick = () => handleOptionClick(qIndex, optIndex, item.c);
+                    optionsStack.appendChild(btn);
+                });
+                
+                card.appendChild(optionsStack);
+                
+                let feedback = document.createElement('div');
+                feedback.className = 'quiz-feedback';
+                feedback.id = `quiz_fb_${qIndex}`;
+                card.appendChild(feedback);
+                
+                container.appendChild(card);
+            });
+            
+            updateScoreBoard();
+        }
+
+        // Хэрэглэгч сонголт дээр дарах үеийн ухаалаг ложик
+        function handleOptionClick(qIndex, selectedIndex, correctIndex) {
+            // Хэрэв энэ асуултыг аль хэдийн зөв гүйцэтгэчихсэн бол дахин дарах шаардлагагүй
+            if (answeredQuestions.has(qIndex)) return;
+
+            let selectedBtn = document.getElementById(`opt_${qIndex}_${selectedIndex}`);
+            let fb = document.getElementById(`quiz_fb_${qIndex}`);
+            fb.style.display = 'block';
+
+            if (selectedIndex === correctIndex) {
+                // 1. ЗӨВ ХАРИУЛСАН ҮЕҮД
+                selectedBtn.classList.add('correct');
+                answeredQuestions.add(qIndex);
+                correctAnswersCount++;
+                
+                fb.style.background = 'rgba(52, 211, 153, 0.1)';
+                fb.style.color = varColor('--accent-green');
+                fb.innerText = "Зөв хариуллаа! 🎉";
+                
+                document.getElementById(`quiz_card_${qIndex}`).classList.add('completed');
+                
+                // Энэ асуултын бусад бүх сонголтыг дарагдахгүй болгоно
+                disableAllOptions(qIndex);
+            } else {
+                // 2. БУРУУ ХАРИУЛСАН ҮЕҮД (Түгжиж, өөр хариулт дарах боломжтой хэвээр үлдэнэ)
+                if (!selectedBtn.classList.contains('wrong')) {
+                    selectedBtn.classList.add('wrong');
+                    selectedBtn.disabled = true; // Бурууг нь дахин дарахгүй болгоно
+                    wrongAttemptsCount++;
+                    
+                    fb.style.background = 'rgba(251, 113, 133, 0.1)';
+                    fb.style.color = varColor('--accent-coral');
+                    fb.innerText = "Буруу байна! Өөр хариулт сонгож үзнэ үү. ❌";
+                }
+            }
+            
+            updateScoreBoard();
+        }
+
+        function disableAllOptions(qIndex) {
+            quizData[qIndex].a.forEach((_, optIndex) => {
+                let btn = document.getElementById(`opt_${qIndex}_${optIndex}`);
+                btn.disabled = true;
+                // Хэрэв зөвөөс бусад нь бол бүгдийг нь идэвхгүй харагдуулна
+                if (!btn.classList.contains('correct')) {
+                    btn.style.opacity = '0.4';
+                    btn.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        function updateScoreBoard() {
+            document.getElementById('globalCorrectCount').innerText = correctAnswersCount;
+            document.getElementById('globalWrongCount').innerText = wrongAttemptsCount;
+        }
+
+        // РЕФРЕШ БУЮУ БҮХ ТЕСТИЙГ АНХНЫ БАЙДЛАД ОРУУЛАХ ФУНКЦ 🔄
+        function resetEntireQuiz() {
+            correctAnswersCount = 0;
+            wrongAttemptsCount = 0;
+            answeredQuestions.clear();
+            renderQuiz();
+        }
+
+        window.onload = function() { renderQuiz(); };
+    </script>
+</body>
+</html>
